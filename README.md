@@ -1,3 +1,39 @@
+# Minerva Warriors: FTC Team 16255 robot code (DECODE 2025–26)
+
+Competition code for FTC Team 16255, Minerva Warriors (American School Foundation of Guadalajara) for the 2025–26 *DECODE* season. The robot intakes game pieces and launches them from a dual-flywheel shooter.
+
+**Results:** Control Award (1st) at the Guadalajara and Monterrey regionals · Guadalajara Regional winning alliance · Monterrey Regional finalist · [team stats on FTCScout](https://ftcscout.org/teams/16255)
+
+All team code lives in [`TeamCode/src/main/java/org/firstinspires/ftc/teamcode`](TeamCode/src/main/java/org/firstinspires/ftc/teamcode). Everything else is the standard FTC SDK.
+
+| Folder | What it does |
+|---|---|
+| `TeleOp/` | Driver-controlled modes, the flywheel controllers and the vision code |
+| `pedroPathing/` | Autonomous routines (Pedro Pathing), localization constants, and the pose handoff from Auto to TeleOp |
+| `Testing/` | Prototypes, tuning tools and older iterations, kept for reference |
+
+## Key systems
+
+**Voltage-compensated flywheel control** ([`VoltageFlywheelController`](TeamCode/src/main/java/org/firstinspires/ftc/teamcode/TeleOp/VoltageFlywheelController.java))
+A custom PIDF velocity controller for the two flywheel motors. As the battery drains during a match, it scales the feedforward and all PID gains by nominal voltage divided by measured voltage, so the last shot of a match leaves at the same RPM as the first. It includes integral anti-windup for when the I term is enabled. Five RPM presets (3,000–4,000) cover close to far shots, and the operator's controller rumbles once both wheels are within 50 RPM of target.
+
+**One-button drive to shooting position** ([`teleWithPedroBlue` / `teleWithPedroRed`](TeamCode/src/main/java/org/firstinspires/ftc/teamcode/TeleOp/))
+During TeleOp, a bumper press builds a Pedro Pathing path from the robot's current pose to a calibrated shooting spot and follows it automatically. The driver gets control back as soon as the path finishes or a stick moves. The robot's pose carries over from Autonomous through `PoseStorage`, so TeleOp starts out knowing where it is.
+
+**Coordinated intake and shooter** ([`TeleOpAdjustable`](TeamCode/src/main/java/org/firstinspires/ftc/teamcode/TeleOp/TeleOpAdjustable.java))
+Intake speed is tied to the shooter's state: when the barrier is closed, the intake runs fast to collect, and when it opens, the intake slows to a feed rate matched to the active flywheel preset. That way pieces enter the shooter at a consistent speed. The operator can also nudge the target RPM in 50-RPM steps for fine-tuning.
+
+**AprilTag distance to RPM** ([`TestVision`](TeamCode/src/main/java/org/firstinspires/ftc/teamcode/TeleOp/TestVision.java), [`TeleOpVisionPID`](TeamCode/src/main/java/org/firstinspires/ftc/teamcode/TeleOp/TeleOpVisionPID.java))
+Uses the FTC VisionPortal AprilTag processor to measure range and yaw to the goal tag, then linearly interpolates between two calibrated (distance, RPM) points to pick the flywheel speed.
+
+**Autonomous** (`pedroPathing/`)
+Pedro Pathing routines for close and far starts on both alliances (6, 9, 12 and 15-piece variants), localized with a goBILDA Pinpoint odometry computer.
+
+## How we worked
+- **Measure, change one thing, measure again.** We timed cycles and logged flywheel RPM and battery voltage in telemetry at every practice. Most commits in this repo are one tuning step.
+- **Drivers shouldn't have to think about the robot's internals.** Presets, rumble feedback and auto-drive replaced manual RPM and positioning.
+- **Old code stays in `Testing/`** instead of being deleted, so we could always go back to a version that worked.
+
 ## NOTICE
 
 This repository contains the public FTC SDK for the DECODE (2025-2026) competition season.
